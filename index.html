@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dental Adventure - Un juego interactivo de odontología donde limpias, diagnosticas y cuidas los dientes de tus pacientes.">
+    <title>🦷 Dental Adventure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Canvas is placed after screen divs so CSS ~ sibling selector works -->
+
+    <!-- ========== SCREEN: MAIN MENU ========== -->
+    <div id="screen-menu" class="screen active">
+        <div class="menu-bg-particles" id="menuParticles"></div>
+        <div class="menu-container">
+            <div class="logo-container">
+                <div class="logo-tooth">🦷</div>
+                <h1 class="game-title">Dental<span class="title-highlight">Adventure</span></h1>
+                <p class="game-subtitle">¡Salva las sonrisas del mundo!</p>
+            </div>
+            <div class="menu-buttons">
+                <button class="btn btn-primary btn-lg" id="btn-play" onclick="Game.setState('LEVEL_SELECT')">
+                    <span class="btn-icon">▶</span> Jugar
+                </button>
+                <button class="btn btn-secondary btn-lg" id="btn-shop" onclick="Game.setState('SHOP')">
+                    <span class="btn-icon">🛒</span> Tienda
+                </button>
+                <button class="btn btn-ghost btn-lg" id="btn-sound" onclick="Game.toggleSound()">
+                    <span class="btn-icon" id="sound-icon">🔊</span> Sonido
+                </button>
+            </div>
+            <div class="coin-display-menu" id="menu-coins">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="menu-coin-amount">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCREEN: LEVEL SELECT ========== -->
+    <div id="screen-level-select" class="screen">
+        <div class="screen-header">
+            <button class="btn btn-back" id="btn-back-levels" onclick="Game.setState('MENU')">← Volver</button>
+            <h2 class="screen-title">Selecciona Paciente</h2>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="ls-coin-amount">0</span>
+            </div>
+        </div>
+        <div class="levels-grid" id="levels-grid">
+            <!-- Levels injected by JS -->
+        </div>
+    </div>
+
+    <!-- ========== SCREEN: GAMEPLAY ========== -->
+    <div id="screen-gameplay" class="screen">
+        <!-- HUD Top -->
+        <div class="hud-top">
+            <button class="btn btn-back btn-sm" id="btn-back-game" onclick="Game.confirmExit()">✕</button>
+            <div class="hud-patient-info">
+                <span class="patient-name" id="hud-patient-name">Paciente</span>
+                <span class="patient-level" id="hud-level-label">Nivel 1</span>
+            </div>
+            <div class="hud-stats">
+                <div class="hud-stat" id="hud-score-container">
+                    <span class="stat-label">Puntos</span>
+                    <span class="stat-value" id="hud-score">0</span>
+                </div>
+                <div class="hud-stat" id="hud-timer-container">
+                    <span class="stat-label">Tiempo</span>
+                    <span class="stat-value" id="hud-timer">0:00</span>
+                </div>
+                <div class="coin-display">
+                    <span class="coin-icon">🪙</span>
+                    <span class="coin-amount" id="gp-coin-amount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrument Bar -->
+        <div class="instrument-bar" id="instrument-bar">
+            <!-- Instruments injected by JS -->
+        </div>
+
+        <!-- Intensity Gauge -->
+        <div class="intensity-gauge" id="intensity-gauge">
+            <div class="gauge-label">Intensidad</div>
+            <div class="gauge-track">
+                <div class="gauge-fill" id="gauge-fill"></div>
+                <div class="gauge-danger-zone"></div>
+            </div>
+            <div class="gauge-value" id="gauge-value">0%</div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progress-container">
+            <div class="progress-label">Progreso de limpieza</div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-value" id="progress-value">0%</div>
+        </div>
+
+        <!-- Tooth Info Tooltip -->
+        <div class="tooth-tooltip" id="tooth-tooltip">
+            <span class="tooltip-name" id="tooltip-name"></span>
+            <span class="tooltip-status" id="tooltip-status"></span>
+        </div>
+
+        <!-- Complete Button -->
+        <button class="btn btn-primary btn-finish" id="btn-finish" onclick="Game.finishCleaning()" style="display:none;">
+            ✓ Terminar Limpieza
+        </button>
+    </div>
+
+    <!-- ========== SCREEN: DIAGNOSIS ========== -->
+    <div id="screen-diagnosis" class="screen">
+        <div class="screen-header">
+            <h2 class="screen-title">🔍 Fase de Diagnóstico</h2>
+        </div>
+        <div class="diagnosis-instructions">
+            <p>Selecciona los dientes que tienen problemas. Haz clic para marcar/desmarcar.</p>
+        </div>
+        <canvas id="diagnosisCanvas"></canvas>
+        <div class="diagnosis-selected" id="diagnosis-selected">
+            <h3>Dientes Seleccionados:</h3>
+            <ul id="diagnosis-list"></ul>
+        </div>
+        <button class="btn btn-primary btn-lg" id="btn-submit-diagnosis" onclick="Game.submitDiagnosis()">
+            ✓ Confirmar Diagnóstico
+        </button>
+    </div>
+
+    <!-- ========== SCREEN: RESULTS ========== -->
+    <div id="screen-results" class="screen">
+        <div class="results-container">
+            <h2 class="results-title" id="results-title">¡Paciente Atendido!</h2>
+            <div class="results-stars" id="results-stars">
+                <span class="star">☆</span><span class="star">☆</span><span class="star">☆</span>
+            </div>
+            <div class="results-breakdown">
+                <div class="result-row">
+                    <span>Limpieza</span>
+                    <span class="result-score" id="result-cleaning">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Diagnóstico</span>
+                    <span class="result-score" id="result-diagnosis">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Tiempo Bonus</span>
+                    <span class="result-score" id="result-time">0</span>
+                </div>
+                <div class="result-row result-total">
+                    <span>Total</span>
+                    <span class="result-score" id="result-total">0</span>
+                </div>
+                <div class="result-row result-coins">
+                    <span>🪙 Monedas Ganadas</span>
+                    <span class="result-score" id="result-coins">+0</span>
+                </div>
+            </div>
+            <div class="results-buttons">
+                <button class="btn btn-secondary btn-lg" id="btn-results-menu" onclick="Game.setState('LEVEL_SELECT')">
+                    Siguiente Paciente
+                </button>
+                <button class="btn btn-primary btn-lg" id="btn-results-retry" onclick="Game.retryLevel()">
+                    Reintentar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCREEN: SHOP ========== -->
+    <div id="screen-shop" class="screen">
+        <div class="screen-header">
+            <button class="btn btn-back" id="btn-back-shop" onclick="Game.setState('MENU')">← Volver</button>
+            <h2 class="screen-title">🛒 Tienda</h2>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="shop-coin-amount">0</span>
+            </div>
+        </div>
+        <div class="shop-categories" id="shop-categories">
+            <!-- Category tabs injected by JS -->
+        </div>
+        <div class="shop-items-grid" id="shop-items-grid">
+            <!-- Shop items injected by JS -->
+        </div>
+    </div>
+
+    <!-- ========== GAME CANVAS (after screens for CSS ~ selector) ========== -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- ========== CONFIRM DIALOG ========== -->
+    <div class="modal-overlay" id="modal-overlay" style="display:none;">
+        <div class="modal-box" id="modal-box">
+            <h3 class="modal-title" id="modal-title">¿Estás seguro?</h3>
+            <p class="modal-text" id="modal-text">Perderás el progreso de este paciente.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-ghost" id="modal-cancel" onclick="Game.closeModal()">Cancelar</button>
+                <button class="btn btn-primary" id="modal-confirm" onclick="Game.confirmModal()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPTS (load order matters) ========== -->
+    <script src="js/audio.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/teeth.js"></script>
+    <script src="js/mouth.js"></script>
+    <script src="js/instruments.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/diagnosis.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
